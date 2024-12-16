@@ -14,11 +14,11 @@
       </div>
       <div class='ddl-area'>
         <text class='normal-text'>Deadline</text>
-        <div class="btn-check {{checked ? 'btn-checked' : ''}}" onclick="turnChecked"></div>
-        <text class='ddl'>NO DDL</text>
+        <div class="btn-check {{checked ? 'btn-checked' : 'bin-check'}}" onclick="turnChecked"></div>
+        <text class='ddl'>{{checked ? 'No DDL' : 'DDL to be set'}}</text>
       </div>
       <!-- 输入开始时间 -->
-      <div class='time-area'>
+      <div class="time-area {{checked ? 'btn-hidden' : ''}}">
         <text>from:</text>
         <div class='time-input'>
           <picker class='date-picker' type="date" value="{{start_date}}" onchange="getStartDate"></picker>
@@ -28,7 +28,7 @@
         </div>
       </div>
       <!-- 输入结束时间 -->
-      <div class='time-area'>
+      <div class="time-area {{checked ? 'btn-hidden' : ''}}">
         <text>to:</text>
         <div class='time-input'>
           <picker class='date-picker' type="date" value="{{end_date}}" onchange="getEndDate"></picker>
@@ -72,7 +72,11 @@ export default {
   },
 
   onInit() {
-    this.$page.setTitleBar({ text: 'add todos' })
+    // 修改页面初始title
+    let tmpTitle = "add todos"
+    if (this.pushType === 0) tmpTitle = "edit"
+    this.$page.setTitleBar({ text: tmpTitle })
+
     this.initAsr()
     this.initTime()
     this.eventName = this.pushName
@@ -163,7 +167,8 @@ export default {
             let startDate = new Date(arr[0], arr[1] - 1, arr[2], arr[3], arr[4], 0, 0)
             let nowDate = new Date()
             if (nowDate.getTime() > startDate.getTime()) list.doingList.push({ name: that.eventName, start: start, end: end })
-            else list.toDoList.push({ name: that.eventName, start: start, end: end })
+            else if (nowDate.getTime() <= startDate.getTime()) list.toDoList.push({ name: that.eventName, start: start, end: end })
+            else list.doneList.push({ name: that.eventName, start})
             // 保存list并返回
             storage.set({
               key: 'msg',
@@ -340,6 +345,10 @@ export default {
 .btn-checked {
   border-width: 0px;
   background-image: url("/Common/checked.png");
+}
+
+.btn-hidden {
+  display: none;
 }
 
 .asr-image1 {
