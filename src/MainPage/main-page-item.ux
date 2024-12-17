@@ -1,16 +1,18 @@
 <template>
   <div class="item">
-    <list class='micro-list'>
-      <list-item class="micro-text" type="item" onclick='openInput(item.name,item.start,item.end,type,idx)'>
-        <text class='text1'>{{item.name}}</text>
-        <div class='time'>
-          <text class='text2'>开始: {{item.start}}</text>
-          <text class='text2'>结束: {{item.end}}</text>
+    <list class="micro-list">
+      <list-item class="micro-text" type="item" onclick="openInput(item.name,item.start,item.end,type,idx)">
+        <text class="text1">{{item.name}}</text>
+        <div class="time">
+          <text class="text2">开始: {{item.start}}</text>
+          <text class="text2">结束: {{item.end}}</text>
+          <text class="text2">完成时间: {{item.finish}}</text>
         </div>
       </list-item>
       <list-item class="micro-btn" type="item">
-        <div if='{{type != 2}}' class='check-btn' onclick="markDone(idx)"></div>
-        <div if="{{type == 2}}" class='cancle-btn' onclick="delItem(idx)"></div>
+        <div if="{{type != 2}}" class="check-btn" onclick="markDone(idx)"></div>
+        <div if="{{type == 2}}" class="cancle-btn" onclick="delItem(idx)"></div>
+        <div if="{{type == 2}}" class="set-finish-btn" onclick="setFinish(idx)"></div>
       </list-item>
     </list>
   </div>
@@ -21,7 +23,7 @@ import router from '@system.router'
 
 export default {
   // type: todo == 0, doing == 1, done == 2
-  props: ['item', 'idx', 'type'],
+  props: ['item', 'idx', 'type', 'finish'],
   
   //标记任务已完成
   markDone(idx) {
@@ -54,61 +56,107 @@ export default {
 
 .item {
   flex: 1;
-  height: 120px;
-  margin-bottom: 15px;
-  .micro-list {
-    flex: 1;
-    height: 120px;
-    flex-direction: row;
-    .micro-text {
-      flex: 1;
-      flex-direction: column;
-      height: 120px;
-      width: 600px;
-      margin-left: 75px;
-      margin-right: 75px;
-      flex-grow: 0;
-      background-color: #ffffff;
-      border: 1px solid rgb(238, 240, 245);
-      border-radius: 20px;
-      .text1 {
-        padding-top: 12px;
-        padding-left: 50px;
-        font-weight: bold;
-        font-size: 38px;
-        color: #000000;
-      }
-      .time {
-        flex-direction: row;
-        margin-top: 10px;
-        padding-left: 30px;
-        .text2 {
-          width: 320px;
-          font-size: 23px;
-          margin-right: 30px;
-          font-family: myfont, serif;
-        }
-      }
-    }
-    .micro-btn {
-      flex: 0;
-      height: 100px;
-      width: 60px;
-      background-color: #f5f5f5;
-    }
-  }
+  height: 250px; /* 增大高度 */
+  margin-bottom: 20px; /* 增加底部间距 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
 }
 
+.micro-list {
+  flex: 1;
+  height: 100%; /* 让列表适应更大的空间 */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* 让内容分布更加均匀 */
+}
+
+.micro-text {
+  flex: 2;
+  height: 100%;
+  margin-left: 15px;
+  margin-right: 15px;
+  flex-grow: 0;
+  background-color: #ffffff;
+  border: 1px solid rgb(238, 240, 245);
+  border-radius: 20px;
+  padding: 15px; /* 增加内边距 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.text1 {
+  flex: 1;
+  height: 100%;
+  color: #333; /* 深色文字 */
+  font-size: 35px; /* 增大字体 */
+  line-height: 1.5; /* 增加行高，提升可读性 */
+  border-width: 0;
+  border-style: solid;
+  border-color: transparent;
+  padding: 10px;
+  background-color: #f7f7f7; /* 背景色更柔和 */
+  border-radius: 15px; /* 增加圆角效果 */
+  display: flex;
+  flex-direction: column;
+}
+
+.time {
+  display: flex;
+  flex-direction: row;
+  margin-top: 20px;
+  padding-left: 30px;
+}
+
+.text2 {
+  width: 320px;
+  font-size: 18px; /* 字体略微增大 */
+  margin-right: 30px;
+  font-family: myfont, serif;
+  color: #666; /* 字体颜色更柔和 */
+}
+
+.micro-btn {
+  flex: 0;
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
+  height: 240px;
+  width: 120px;
+}
+
+.check-btn,
+.cancle-btn,
+.set-finish-btn {
+  width: 100px; /* 按钮宽度 */
+  height: 100px; /* 按钮高度 */
+  margin-bottom: 10px; /* 按钮之间的间距 */
+  background-size: cover;
+  border-radius: 10px; /* 圆角按钮 */
+  background-position: center;
+}
+
+/* 按钮的不同状态 */
 .check-btn {
-  width: 50px;
-  height: 50px;
-  margin-top: 35px;
   background-image: url("/Common/checked.png");
 }
+
 .cancle-btn {
-  width: 50px;
-  height: 50px;
-  margin-top: 35px;
   background-image: url("/Common/cancle.png");
 }
+
+.set-finish-btn {
+  background-image: url("/Common/time.png");
+  margin-right: 20px;
+}
+
+/* 适应内容溢出，添加滑动框 */
+.micro-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 </style>

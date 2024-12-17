@@ -37,6 +37,16 @@
           <div class='time-image'></div>
         </div>
       </div>
+      <!-- 输入结束时间 -->
+      <div class="time-area {{pushType == 2 && setFinish ? '' : 'btn-hidden'}}">
+        <text>完成:</text>
+        <div class="time-input">
+          <picker class='date-picker' type="date" value="{{finish_date}}" onchange="getEndDate"></picker>
+          <div class='date-image'></div>
+          <picker class='time-picker' type="time" value="{{finish_time}}" onchange="getEndTime"></picker>
+          <div class='time-image'></div>
+        </div>
+      </div>
       <!-- <div class="asr-btn {{scale}} {{enabled ? 'asr-btn-enabled' : 'asr-btn-disabled'}}" ontouchstart="startAsr">
         <div class='asr-image2'></div>
       </div> -->
@@ -58,6 +68,8 @@ export default {
     start_time: '',
     end_date: '',
     end_time: '',
+    finish_date: '',
+    finish_time: '',
     checked: false,
     enabled: false,
     scale: ''
@@ -68,7 +80,8 @@ export default {
     pushStart: '',
     pushEnd: '',
     pushType: '',
-    pushIdx: ''
+    pushIdx: '',
+    setFinish: false
   },
 
   onInit() {
@@ -144,6 +157,22 @@ export default {
     this.eventName = ''
   },
 
+  getDateByTimeStr(timeStr) {
+    // 将时间字符串转换成Date
+    if (!timeStr) return null
+    let timeArr = timeStr.replace(/[:\-\\&]/g, ',').split(',')            
+
+    if (timeArr.length < 5) {
+      that.$app.$def.makeToast("日期设置错误!") 
+      return null
+    }
+
+    let result = new Date(
+      timeArr[0], timeArr[1]-1,  timeArr[2],  timeArr[3], timeArr[4], 0, 0
+    )
+    return result
+  },
+
   addEvent() {
     if (this.eventName === '') {
       this.$app.$def.makeToast('error: task name must not be null')
@@ -161,15 +190,19 @@ export default {
             // 修改事项时触发
             if (that.pushType == 0) list.toDoList.splice(that.pushIdx, 1)
             else if (that.pushType == 1) list.doingList.splice(that.pushIdx, 1)
-            else if (that.pushType == 2) list.doneList.splice(that.pushIdx, 1)
+            else if (that.pushType == 2) {
+              if (that.setFinish) {
+                list.doneList.splice(that.pushIdx, 1)
+                let finish = that.finish_date + '&' + that.finish_time
+                if (finishTime) list.doneList.push({name: that.eventName, start: start, end: end, finish: finish})
+              } 
+            }
             // 判断todo/doing
-            let startArr = start.replace(/[:\-\\&]/g, ',').split(',')            
-            let startDate = new Date(startArr[0], startArr[1] - 1, startArr[2], startArr[3], startArr[4], 0, 0)
+            let startDate = that.getDateByTimeStr(start)
             
             // end time 必须晚于 start time
             if (end != "wow ! no ddl!") {
-              let endArr = end.replace(/[:\-\\&]/g, ',').split(',')
-              let endData = new Date(endArr[0], endArr[1] - 1, endArr[2], endArr[3], endArr[4], 0, 0)
+              let endData = that.getDateByTimeStr(end)
               if (endData.getTime() < startDate.getTime()) {
                 that.$app.$def.makeToast("日期设置错误！结束时间必须晚于开始时间～")
                 this.end_date = ""
@@ -179,8 +212,10 @@ export default {
             }
 
             let nowDate = new Date()
-            if (nowDate.getTime() > startDate.getTime()) list.doingList.push({ name: that.eventName, start: start, end: end })
-            else list.toDoList.push({ name: that.eventName, start: start, end: end })
+            if (nowDate.getTime() > startDate.getTime() && that.pushType != 2) 
+              list.doingList.push({ name: that.eventName, start: start, end: end })
+            else if (nowDate.getTime() <= startDate.getTime() && that.pushType != 2) 
+              list.toDoList.push({ name: that.eventName, start: start, end: end })
             
             // 保存list并返回
             storage.set({
