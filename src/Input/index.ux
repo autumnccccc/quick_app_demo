@@ -15,11 +15,11 @@
       <div class='ddl-area'>
         <text class='normal-text'>Deadline</text>
         <div class="btn-check {{checked ? 'btn-checked' : 'bin-check'}}" onclick="turnChecked"></div>
-        <text class='ddl'>{{checked ? 'No DDL' : 'DDL to be set'}}</text>
+        <text class='ddl'>{{checked ? 'Cancel' : 'No DDL'}}</text>
       </div>
       <!-- 输入开始时间 -->
-      <div class="time-area {{checked ? 'btn-hidden' : ''}}">
-        <text>from:</text>
+      <div class="time-area">
+        <text>开始:</text>
         <div class='time-input'>
           <picker class='date-picker' type="date" value="{{start_date}}" onchange="getStartDate"></picker>
           <div class='date-image'></div>
@@ -29,7 +29,7 @@
       </div>
       <!-- 输入结束时间 -->
       <div class="time-area {{checked ? 'btn-hidden' : ''}}">
-        <text>to:</text>
+        <text>结束:</text>
         <div class='time-input'>
           <picker class='date-picker' type="date" value="{{end_date}}" onchange="getEndDate"></picker>
           <div class='date-image'></div>
@@ -163,12 +163,25 @@ export default {
             else if (that.pushType == 1) list.doingList.splice(that.pushIdx, 1)
             else if (that.pushType == 2) list.doneList.splice(that.pushIdx, 1)
             // 判断todo/doing
-            let arr = start.replace(/[:\-\\&]/g, ',').split(',')
-            let startDate = new Date(arr[0], arr[1] - 1, arr[2], arr[3], arr[4], 0, 0)
+            let startArr = start.replace(/[:\-\\&]/g, ',').split(',')            
+            let startDate = new Date(startArr[0], startArr[1] - 1, startArr[2], startArr[3], startArr[4], 0, 0)
+            
+            // end time 必须晚于 start time
+            if (end != "wow ! no ddl!") {
+              let endArr = end.replace(/[:\-\\&]/g, ',').split(',')
+              let endData = new Date(endArr[0], endArr[1] - 1, endArr[2], endArr[3], endArr[4], 0, 0)
+              if (endData.getTime() < startDate.getTime()) {
+                that.$app.$def.makeToast("日期设置错误！结束时间必须晚于开始时间～")
+                this.end_date = ""
+                this.end_date = ""
+                return
+              }
+            }
+
             let nowDate = new Date()
             if (nowDate.getTime() > startDate.getTime()) list.doingList.push({ name: that.eventName, start: start, end: end })
-            else if (nowDate.getTime() <= startDate.getTime()) list.toDoList.push({ name: that.eventName, start: start, end: end })
-            else list.doneList.push({ name: that.eventName, start})
+            else list.toDoList.push({ name: that.eventName, start: start, end: end })
+            
             // 保存list并返回
             storage.set({
               key: 'msg',
